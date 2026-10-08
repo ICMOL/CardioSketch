@@ -19,7 +19,8 @@ pip install -r requirements.txt
 
 ## Requirements
 
-CardioSketch has been tested with Python 3.10.11.
+- Python 3.10.11 (tested)
+- Dependencies listed in `requirements.txt`
 
 ## Usage
 
