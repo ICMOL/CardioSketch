@@ -13,10 +13,13 @@ for automatic P, QRS, and T wave detection.
 The measurement table contains the detected time points
 and amplitudes of ECG waveform features.
 
-
 ## Installation
 
 pip install -r requirements.txt
+
+## Requirements
+
+CardioSketch has been tested with Python 3.10.11.
 
 ## Usage
 
