@@ -10,13 +10,9 @@ for automatic P, QRS, and T wave detection.
 
 ## Output
 
-CardioSketch generates:
+The measurement table contains the detected time points
+and amplitudes of ECG waveform features.
 
-- P-wave peak and boundaries
-- QRS boundaries and R peaks
-- T-wave peak and boundaries
-- Timing and amplitude measurements
-- PQRST visualization
 
 ## Installation
 
@@ -24,4 +20,11 @@ pip install -r requirements.txt
 
 ## Usage
 
+Run:
+
 python main.py
+
+The CardioSketch interface supports:
+
+- Single Record: analyze one ECG record
+- Batch Analysis: analyze multiple ECG records
