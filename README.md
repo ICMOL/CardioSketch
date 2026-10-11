@@ -12,11 +12,11 @@ for automatic P, QRS, and T wave detection.
 
 CardioSketch generates ECG waveform plots and measurement tables for each record.
 
-ECG Plots : Visualizations of the detected PQRST waveforms across the 12 ECG leads.
+- ECG Plots : Visualizations of the detected PQRST waveforms across the 12 ECG leads.
 
-Measurement : An Excel workbook containing 12 worksheets, one for each ECG lead. Each worksheet includes the detected waveform feature time points and amplitudes.
+- Measurement : An Excel workbook containing 12 worksheets, one for each ECG lead. Each worksheet includes the detected waveform feature time points and amplitudes.
 
-Measurement Summary : A single-sheet Excel workbook combining measurements from all 12 ECG leads. Each feature column is prefixed with its lead name (e.g., I_p_ons_time and II_p_ons_time), making it easier to analyze measurements across leads in one table.
+- Measurement Summary : A single-sheet Excel workbook combining measurements from all 12 ECG leads. Each feature column is prefixed with its lead name (e.g., I_p_ons_time and II_p_ons_time), making it easier to analyze measurements across leads in one table.
 
 ## Installation
 
