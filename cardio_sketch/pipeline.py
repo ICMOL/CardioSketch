@@ -17,10 +17,12 @@ def run_pipeline_for_record(rec_id):
     # log_dir = rec_out / "logs"; log_dir.mkdir(parents=True, exist_ok=True)
     input_path = Path(rec_id)
     rec_id = input_path.stem
-    save_pqrst = Path("output") / "pqrst"
+    save_pqrst = Path("output") / "ecg_plots"
     output_folder = Path("output") / "measurement"
+    summary_folder = Path("output") / "measurement_summary"
     save_pqrst.mkdir(parents=True, exist_ok=True)
     output_folder.mkdir(parents=True, exist_ok=True)
+    summary_folder.mkdir(parents=True, exist_ok=True)
     try:
         # --- A. 載入數據 ---
         # XML and WFDB share the same downstream pipeline. Only the
@@ -226,65 +228,98 @@ def run_pipeline_for_record(rec_id):
         import pandas as pd
         import os
 
-        output_path = os.path.join(
-            output_folder,
-            f"{rec_id}_measurement.xlsx"
-        )
+        output_path = output_folder / f"{rec_id}_measurement.xlsx"
+        summary_path = summary_folder / f"{rec_id}_measurement_summary.xlsx"
 
-        # 一個 Excel 檔案，裡面每個 Lead 一張 sheet
+        # Version 1: one worksheet per lead (keep the existing format).
+        # Version 2: one worksheet with lead-prefixed feature columns.
+        summary_rows_by_beat = {}
+
         with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
-
             for lead, lead_data in measurement["lead_results"].items():
-
-                # 找出這個 Lead 有多少個 beat
+                # Each lead may have a different number of detected beats.
                 max_beats = max(
-                    len(point_data["idx"])
-                    for point_data in lead_data.values()
+                    (len(point_data["idx"]) for point_data in lead_data.values()),
+                    default=0,
                 )
 
                 rows = []
-
-                # 每一列 = 一個 Beat
                 for beat_idx in range(max_beats):
-
                     row = {
                         "Record ID": measurement["record_id"],
                         "Lead": lead,
-                        "Beat": beat_idx + 1
+                        "Beat": beat_idx + 1,
                     }
 
-                    # 每個 fiducial point 展開成 time + amplitude
                     for point, point_data in lead_data.items():
-
                         indices = point_data["idx"]
                         amplitudes = point_data["amp"]
 
-                        # 避免某個 point 在這個 beat 沒有資料
                         if beat_idx < len(indices):
-
                             idx = indices[beat_idx]
                             amp = amplitudes[beat_idx]
-
                             row[f"{point}_time"] = (
                                 idx / measurement["fs"] * 1000
                             )
-
                             row[f"{point}_amp"] = amp
-
                         else:
                             row[f"{point}_time"] = None
                             row[f"{point}_amp"] = None
 
                     rows.append(row)
 
-                lead_df = pd.DataFrame(rows)
+                    # Align all leads by Record ID + Beat.
+                    # Prefix every measurement column with its lead name.
+                    summary_key = (measurement["record_id"], beat_idx + 1)
+                    summary_row = summary_rows_by_beat.setdefault(
+                        summary_key,
+                        {
+                            "Record ID": measurement["record_id"],
+                            "Beat": beat_idx + 1,
+                        },
+                    )
+                    for column_name, value in row.items():
+                        if column_name in {"Record ID", "Lead", "Beat"}:
+                            continue
+                        summary_row[f"{lead}_{column_name}"] = value
 
-                # 每個 Lead 寫入自己的 sheet
-                lead_df.to_excel(
+                pd.DataFrame(rows).to_excel(
                     writer,
-                    sheet_name=lead[:31],  # Excel sheet 名稱最多 31 字元
-                    index=False
+                    sheet_name=lead[:31],
+                    index=False,
                 )
+
+        # Save the summary workbook as a single worksheet.
+        summary_df = pd.DataFrame(list(summary_rows_by_beat.values()))
+        if not summary_df.empty:
+            # Use the conventional 12-lead ECG order instead of alphabetical order.
+            lead_order = [
+                "I", "II", "III", "aVR", "aVL", "aVF",
+                "V1", "V2", "V3", "V4", "V5", "V6",
+            ]
+            lead_rank = {lead: index for index, lead in enumerate(lead_order)}
+
+            def summary_column_sort_key(column_name):
+                # Column names have the form "<Lead>_<feature>", e.g. "I_p_ons_time".
+                for lead in lead_order:
+                    prefix = f"{lead}_"
+                    if column_name.startswith(prefix):
+                        return (lead_rank[lead], column_name[len(prefix):])
+                # Keep any unexpected columns after the standard 12 leads.
+                return (len(lead_order), column_name)
+
+            feature_columns = sorted(
+                (
+                    column for column in summary_df.columns
+                    if column not in {"Record ID", "Beat"}
+                ),
+                key=summary_column_sort_key,
+            )
+            summary_df = summary_df[["Record ID", "Beat"] + feature_columns]
+
+        with pd.ExcelWriter(summary_path, engine="openpyxl") as writer:
+            summary_df.to_excel(writer, sheet_name="Summary", index=False)
+
         return measurement
         
 
@@ -303,7 +338,7 @@ def run_pipeline_for_record(rec_id):
         
         print("!"*60 + "\n")
         return None
-def run_pipeline_for_folder(folder_path):
+def run_pipeline_for_folder(folder_path, progress_callback=None):
     """
     批次處理資料夾中的 ECG。
     支援：
@@ -371,6 +406,18 @@ def run_pipeline_for_folder(folder_path):
             results[record_path.stem] = result
         else:
             failed.append(record_path.stem)
+
+        # Report progress after each record finishes. The GUI callback should
+        # only enqueue this information; Tkinter widgets are updated on the
+        # main thread.
+        if progress_callback is not None:
+            progress_callback({
+                "completed": i,
+                "total": len(records),
+                "current": record_path.name,
+                "success": len(results),
+                "failed": len(failed),
+            })
 
     # ----------------------------------------------------------
     # 4. Batch summary
