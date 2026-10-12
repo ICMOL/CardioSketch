@@ -10,11 +10,7 @@ from cardio_sketch.visualization.plot import plot_12leads_final_pqrst_ptbxl
 from cardio_sketch.io.xml.chung_long import load_chung_long_xml
 from cardio_sketch.io.wfdb import load_wfdb_record
 def run_pipeline_for_record(rec_id):
-    """
-    精簡版 Pipeline：只跑偵測與評估，不畫圖，節省 90% 的執行時間。
-    """
-    # rec_out = base_out_dir / str(rec_id)
-    # log_dir = rec_out / "logs"; log_dir.mkdir(parents=True, exist_ok=True)
+
     input_path = Path(rec_id)
     rec_id = input_path.stem
     save_pqrst = Path("output") / "ecg_plots"
@@ -104,7 +100,7 @@ def run_pipeline_for_record(rec_id):
 
         candidate_infos.sort(key=lambda x: x["rr_std"])
 
-        RR_STD_RATIO = 0.05      # within 15% regarded as same group
+        RR_STD_RATIO = 0.05      # within 5% regarded as same group
 
         groups = []
         current_group = [candidate_infos[0]]

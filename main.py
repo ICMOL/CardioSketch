@@ -201,7 +201,7 @@ def main():
     ttk.Button(
         output_frame,
         text="Open ECG plots Output",
-        command=lambda: _open_folder(Path("output") / "pqrst"),
+        command=lambda: _open_folder(Path("output") / "ecg_plots"),
     ).pack(side="left", padx=5)
 
     ttk.Button(
