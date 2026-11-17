@@ -1,4 +1,12 @@
+# Python
 .venv/
 venv/
 __pycache__/
 *.py[cod]
+
+# PyInstaller
+/build/
+/dist/
+
+# Generated outputs
+/output/

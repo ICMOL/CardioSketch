@@ -9,7 +9,11 @@ from cardio_sketch.pipeline import (
     run_pipeline_for_record,
     run_pipeline_for_folder,
 )
-
+from cardio_sketch.config import (
+    ECG_PLOTS_DIR,
+    MEASUREMENT_DIR,
+    SUMMARY_DIR,
+)
 
 APP_TITLE = "CardioSketch"
 
@@ -201,19 +205,19 @@ def main():
     ttk.Button(
         output_frame,
         text="Open ECG plots Output",
-        command=lambda: _open_folder(Path("output") / "ecg_plots"),
+        command=lambda: _open_folder(ECG_PLOTS_DIR),
     ).pack(side="left", padx=5)
 
     ttk.Button(
         output_frame,
         text="Open Measurement Output",
-        command=lambda: _open_folder(Path("output") / "measurement"),
+        command=lambda: _open_folder(MEASUREMENT_DIR),
     ).pack(side="left", padx=5)
 
     ttk.Button(
         output_frame,
         text="Open Summary Output",
-        command=lambda: _open_folder(Path("output") / "measurement_summary"),
+        command=lambda: _open_folder(SUMMARY_DIR),
     ).pack(side="left", padx=5)
 
     def set_controls_enabled(enabled):

@@ -9,13 +9,18 @@ from cardio_sketch.measurement.measurement import build_measurement
 from cardio_sketch.visualization.plot import plot_12leads_final_pqrst_ptbxl
 from cardio_sketch.io.xml.chung_long import load_chung_long_xml
 from cardio_sketch.io.wfdb import load_wfdb_record
+from cardio_sketch.config import (
+    ECG_PLOTS_DIR,
+    MEASUREMENT_DIR,
+    SUMMARY_DIR,
+)
 def run_pipeline_for_record(rec_id):
 
     input_path = Path(rec_id)
     rec_id = input_path.stem
-    save_pqrst = Path("output") / "ecg_plots"
-    output_folder = Path("output") / "measurement"
-    summary_folder = Path("output") / "measurement_summary"
+    save_pqrst = ECG_PLOTS_DIR
+    output_folder = MEASUREMENT_DIR
+    summary_folder = SUMMARY_DIR
     save_pqrst.mkdir(parents=True, exist_ok=True)
     output_folder.mkdir(parents=True, exist_ok=True)
     summary_folder.mkdir(parents=True, exist_ok=True)
